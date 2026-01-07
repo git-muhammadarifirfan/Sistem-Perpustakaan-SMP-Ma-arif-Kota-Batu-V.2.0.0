@@ -44,6 +44,7 @@ export default function RatingsSection() {
   const [myComment, setMyComment] = useState('')
 
   const scroller = useRef<HTMLDivElement | null>(null)
+  const mobileScroller = useRef<HTMLDivElement | null>(null)
 
   const dist = useMemo(
     () => [
@@ -55,6 +56,8 @@ export default function RatingsSection() {
     ],
     [summary],
   )
+
+  const mobileItems = useMemo(() => items.slice(0, 8), [items])
 
   useEffect(() => {
     let alive = true
@@ -72,7 +75,9 @@ export default function RatingsSection() {
         setSessionUser({
           id: ses.user.id,
           name:
-            (ses.user.user_metadata?.full_name as string) ?? (ses.user.email as string) ?? 'User',
+            (ses.user.user_metadata?.full_name as string) ??
+            (ses.user.email as string) ??
+            'User',
           avatar: (ses.user.user_metadata?.avatar_url as string) ?? null,
         })
       } else setSessionUser(null)
@@ -86,7 +91,9 @@ export default function RatingsSection() {
           setSessionUser({
             id: ses.user.id,
             name:
-              (ses.user.user_metadata?.full_name as string) ?? (ses.user.email as string) ?? 'User',
+              (ses.user.user_metadata?.full_name as string) ??
+              (ses.user.email as string) ??
+              'User',
             avatar: (ses.user.user_metadata?.avatar_url as string) ?? null,
           })
       })
@@ -105,6 +112,12 @@ export default function RatingsSection() {
     const el = scroller.current
     if (!el) return
     el.scrollBy({ left: dir * (el.clientWidth * 0.9), behavior: 'smooth' })
+  }
+
+  function scrollMobile(dir: 1 | -1) {
+    const el = mobileScroller.current
+    if (!el) return
+    el.scrollBy({ left: dir * (el.clientWidth * 0.88), behavior: 'smooth' })
   }
 
   async function onSubmit() {
@@ -130,15 +143,16 @@ export default function RatingsSection() {
   }
 
   return (
-    <section id="rating" className="relative py-16 sm:py-20 scroll-mt-24">
+    <section id="rating" className="relative overflow-x-clip py-14 sm:py-20 scroll-mt-24">
       <Container>
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <Reveal>
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-textPrimary sm:text-4xl">
+            <div className="min-w-0">
+              <h2 className="text-2xl font-bold tracking-tight text-textPrimary sm:text-4xl">
                 Rating & Ulasan
               </h2>
-              <p className="mt-2 text-base text-textSecondary">
+              <p className="mt-2 text-sm text-textSecondary sm:text-base">
                 Apa kata pengguna tentang aplikasi ini?
               </p>
             </div>
@@ -146,30 +160,172 @@ export default function RatingsSection() {
 
           <Reveal delay={0.06}>
             <Link
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-textPrimary shadow-soft hover:bg-white/8 hover:border-white/20 hover:shadow-lift"
+              className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary hover:opacity-90"
               to="/reasons"
             >
-              Lihat semua ulasan <span aria-hidden> </span>
+              Lihat semua ulasan <span aria-hidden>›</span>
             </Link>
           </Reveal>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        {/* ===================== */}
+        {/* MOBILE (konsisten theme + swipe reviews) */}
+        {/* ===================== */}
+        <div className="sm:hidden">
+          {/* Summary card (theme primary) */}
+          <div className="mt-6 rounded-3xl border border-white/10 bg-primary/15 p-5 shadow-soft">
+            <div className="text-center">
+              <div className="text-5xl font-extrabold tracking-tight text-textPrimary">
+                {summary.total_reviews ? summary.avg_rating.toFixed(1) : '—'}
+              </div>
+
+              <div className="mt-2 flex items-center justify-center">
+                {/* pakai komponen kamu biar konsisten */}
+                <StarRating value={summary.avg_rating} size={16} />
+              </div>
+
+              <div className="mt-2 text-xs font-semibold text-textSecondary">
+                {summary.total_reviews} reviews
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-2">
+              {dist.map((d) => (
+                <div key={d.star} className="flex items-center gap-3">
+                  <div className="w-4 text-xs font-semibold text-textPrimary">{d.star}</div>
+
+                  <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+                    <motion.div
+                      className="absolute inset-y-0 left-0 rounded-full bg-primary"
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${percent(d.count, summary.total_reviews)}%` }}
+                      viewport={{ once: true, margin: '-60px' }}
+                      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  </div>
+
+                  <div className="w-6 text-right text-xs font-semibold text-textSecondary">
+                    {d.count}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile reviews header + arrows */}
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-base font-semibold text-textPrimary">Ulasan Terbaru</div>
+            </div>
+
+            <div className="flex flex-none items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollMobile(-1)}
+                aria-label="Prev"
+                className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-base text-textPrimary shadow-soft hover:bg-white/8"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollMobile(1)}
+                aria-label="Next"
+                className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/5 text-base text-textPrimary shadow-soft hover:bg-white/8"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+
+          {/* Swipe reviews */}
+          <div
+            ref={mobileScroller}
+            className="
+              mt-3 flex gap-3 overflow-x-auto pb-2
+              snap-x snap-mandatory
+              [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+            "
+          >
+            {loading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-[86%] flex-none snap-start rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft"
+                >
+                  <Skeleton className="h-4 w-28 rounded-xl" />
+                  <Skeleton className="mt-3 h-4 w-20 rounded-xl" />
+                  <Skeleton className="mt-4 h-14 w-full rounded-2xl" />
+                </div>
+              ))
+            ) : mobileItems.length ? (
+              mobileItems.map((r) => (
+                <div
+                  key={r.id}
+                  className="w-[86%] flex-none snap-start rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft"
+                >
+                  <div className="flex items-start gap-3">
+                    {r.avatar_url ? (
+                      <img
+                        className="h-10 w-10 rounded-full object-cover"
+                        src={r.avatar_url}
+                        alt="avatar"
+                      />
+                    ) : (
+                      <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 font-semibold text-primary ring-1 ring-white/10">
+                        {(r.user_name ?? 'U')[0]?.toUpperCase()}
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-textPrimary">
+                        {r.user_name}
+                      </div>
+                      <div className="mt-1 flex items-center gap-2">
+                        <StarRating value={r.rating} size={14} />
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                          {r.rating.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 line-clamp-3 text-xs leading-5 text-textSecondary">
+                    {r.comment ?? '—'}
+                  </div>
+
+                  <div className="mt-3 text-[10px] text-textSecondary/80">
+                    {timeAgo(r.created_at)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-textSecondary">Belum ada ulasan. Jadilah yang pertama 🙂</div>
+            )}
+          </div>
+        </div>
+
+        {/* ===================== */}
+        {/* DESKTOP/TABLET (layout kamu) */}
+        {/* ===================== */}
+        <div className="mt-7 hidden gap-5 sm:grid lg:mt-8 lg:grid-cols-2 lg:gap-6">
+          {/* Summary */}
           <Reveal>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-5xl font-extrabold tracking-tight text-textPrimary">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-4xl font-extrabold tracking-tight text-textPrimary sm:text-5xl">
                     {summary.total_reviews ? summary.avg_rating.toFixed(1) : '—'}
                   </div>
                   <div className="mt-2">
                     <StarRating value={summary.avg_rating} />
                   </div>
-                  <div className="mt-2 text-sm text-textSecondary">
+                  <div className="mt-2 text-xs text-textSecondary sm:text-sm">
                     {summary.total_reviews} reviews
                   </div>
                 </div>
-                <div className="hidden h-24 w-24 rounded-3xl bg-primary/10 ring-1 ring-white/10 sm:grid sm:place-items-center">
+
+                <div className="hidden h-24 w-24 flex-none rounded-3xl bg-primary/10 ring-1 ring-white/10 sm:grid sm:place-items-center">
                   <span className="text-3xl text-primary" aria-hidden>
                     ★
                   </span>
@@ -179,7 +335,10 @@ export default function RatingsSection() {
               <div className="mt-6 space-y-3">
                 {dist.map((d) => (
                   <div key={d.star} className="flex items-center gap-3">
-                    <div className="w-8 text-sm font-semibold text-textPrimary">{d.star}</div>
+                    <div className="w-7 text-sm font-semibold text-textPrimary sm:w-8">
+                      {d.star}
+                    </div>
+
                     <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-white/10">
                       <motion.div
                         className="absolute inset-y-0 left-0 rounded-full bg-primary"
@@ -189,7 +348,8 @@ export default function RatingsSection() {
                         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                       />
                     </div>
-                    <div className="w-10 text-right text-sm font-semibold text-textSecondary">
+
+                    <div className="w-10 text-right text-xs font-semibold text-textSecondary sm:text-sm">
                       {d.count}
                     </div>
                   </div>
@@ -198,13 +358,16 @@ export default function RatingsSection() {
             </div>
           </Reveal>
 
+          {/* Latest reviews (horizontal scroll) */}
           <Reveal delay={0.06}>
-            <div className="relative rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
-              <div className="flex items-center justify-between">
+            <div className="relative rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft sm:p-6">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-lg font-semibold text-textPrimary">Ulasan Terbaru</div>
-                  <div className="mt-1 text-sm text-textSecondary">
-                    Scroll untuk melihat lebih banyak
+                  <div className="text-base font-semibold text-textPrimary sm:text-lg">
+                    Ulasan Terbaru
+                  </div>
+                  <div className="mt-1 text-xs text-textSecondary sm:text-sm">
+                    Geser untuk lihat lebih banyak
                   </div>
                 </div>
 
@@ -213,6 +376,7 @@ export default function RatingsSection() {
                     className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-lg text-textPrimary shadow-soft hover:bg-white/8 hover:border-white/20 hover:shadow-lift"
                     onClick={() => scrollBy(-1)}
                     aria-label="Prev"
+                    type="button"
                   >
                     ‹
                   </button>
@@ -220,18 +384,26 @@ export default function RatingsSection() {
                     className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/5 text-lg text-textPrimary shadow-soft hover:bg-white/8 hover:border-white/20 hover:shadow-lift"
                     onClick={() => scrollBy(1)}
                     aria-label="Next"
+                    type="button"
                   >
                     ›
                   </button>
                 </div>
               </div>
 
-              <div ref={scroller} className="mt-6 flex gap-4 overflow-x-auto pb-2">
+              <div
+                ref={scroller}
+                className="
+                  mt-5 flex gap-3 overflow-x-auto pb-2 sm:mt-6 sm:gap-4
+                  snap-x snap-mandatory
+                  [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+                "
+              >
                 {loading ? (
                   Array.from({ length: 4 }).map((_, i) => (
                     <div
                       key={i}
-                      className="min-w-[260px] rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft"
+                      className="min-w-[260px] flex-none snap-start rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft"
                     >
                       <Skeleton className="h-4 w-36 rounded-xl" />
                       <Skeleton className="mt-3 h-4 w-24 rounded-xl" />
@@ -242,16 +414,21 @@ export default function RatingsSection() {
                   items.map((r) => (
                     <div
                       key={r.id}
-                      className="min-w-[260px] rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft"
+                      className="min-w-[260px] flex-none snap-start rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft"
                     >
                       <div className="flex items-center gap-3">
                         {r.avatar_url ? (
-                          <img className="h-10 w-10 rounded-full" src={r.avatar_url} alt="avatar" />
+                          <img
+                            className="h-10 w-10 rounded-full object-cover"
+                            src={r.avatar_url}
+                            alt="avatar"
+                          />
                         ) : (
                           <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 font-semibold text-primary">
                             {(r.user_name ?? 'U')[0]?.toUpperCase()}
                           </div>
                         )}
+
                         <div className="min-w-0">
                           <div className="truncate text-sm font-semibold text-textPrimary">
                             {r.user_name}
@@ -264,6 +441,7 @@ export default function RatingsSection() {
                           </div>
                         </div>
                       </div>
+
                       <div className="mt-4 line-clamp-4 text-sm leading-6 text-textSecondary">
                         {r.comment ?? '—'}
                       </div>
@@ -280,14 +458,15 @@ export default function RatingsSection() {
           </Reveal>
         </div>
 
-        <div className="mt-10">
+        {/* Give rating (tetap punyamu) */}
+        <div className="mt-8 sm:mt-10">
           <Reveal>
             <section
               id="give-rating"
-              className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft backdrop-blur sm:p-8"
+              className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft backdrop-blur sm:p-8"
             >
               <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                {/* Left / Header */}
+                {/* Left */}
                 <div className="max-w-xl">
                   <div className="flex items-center gap-3">
                     <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 ring-1 ring-white/10">
@@ -307,7 +486,7 @@ export default function RatingsSection() {
                     </div>
 
                     <div>
-                      <h3 className="text-xl font-semibold text-textPrimary sm:text-2xl">
+                      <h3 className="text-lg font-semibold text-textPrimary sm:text-2xl">
                         Berikan Rating
                       </h3>
                       <p className="mt-1 text-sm text-textSecondary">
@@ -326,9 +505,9 @@ export default function RatingsSection() {
                   </div>
                 </div>
 
-                {/* Right / Content */}
+                {/* Right */}
                 {!sessionUser ? (
-                  <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft ring-1 ring-white/5 lg:mt-1">
+                  <div className="w-full rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft ring-1 ring-white/5 lg:max-w-md">
                     <div className="text-sm font-semibold text-textPrimary">Login untuk mulai</div>
                     <p className="mt-1 text-sm text-textSecondary">
                       Masuk dengan Google agar kamu bisa mengirim rating & komentar.
@@ -340,35 +519,13 @@ export default function RatingsSection() {
                         onClick={() => signInWithGoogle()}
                         className="w-full justify-center"
                       >
-                        <span className="mr-2 inline-flex">
-                          {/* Google SVG */}
-                          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-                            <path
-                              fill="#FFC107"
-                              d="M43.611 20.083H42V20H24v8h11.303C33.644 32.657 29.189 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.05 6.053 29.3 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z"
-                            />
-                            <path
-                              fill="#FF3D00"
-                              d="M6.306 14.691l6.571 4.819C14.655 16.108 19.01 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.05 6.053 29.3 4 24 4c-7.682 0-14.35 4.337-17.694 10.691z"
-                            />
-                            <path
-                              fill="#4CAF50"
-                              d="M24 44c5.087 0 9.744-1.959 13.245-5.148l-6.117-5.174C29.095 35.091 26.662 36 24 36c-5.166 0-9.607-3.315-11.276-7.946l-6.52 5.02C9.506 39.556 16.227 44 24 44z"
-                            />
-                            <path
-                              fill="#1976D2"
-                              d="M43.611 20.083H42V20H24v8h11.303c-.802 2.244-2.326 4.146-4.375 5.478l.003-.002 6.117 5.174C36.59 39.02 44 34 44 24c0-1.341-.138-2.651-.389-3.917z"
-                            />
-                          </svg>
-                        </span>
                         Login dengan Google
                       </Button>
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full max-w-2xl">
-                    {/* User row */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft">
+                  <div className="w-full lg:max-w-2xl">
+                    <div className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 shadow-soft sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         {sessionUser.avatar ? (
                           <img
@@ -391,33 +548,16 @@ export default function RatingsSection() {
                       </div>
 
                       <button
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-textPrimary
-                           hover:bg-white/10"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-textPrimary hover:bg-white/10 sm:w-auto"
                         onClick={() => signOut()}
                         type="button"
                       >
-                        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" aria-hidden="true">
-                          <path
-                            d="M10 7V6a2 2 0 012-2h7a2 2 0 012 2v12a2 2 0 01-2 2h-7a2 2 0 01-2-2v-1"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                          />
-                          <path
-                            d="M15 12H3m0 0l3-3m-3 3l3 3"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
                         Logout
                       </button>
                     </div>
 
-                    {/* Rating */}
-                    <div className="mt-5 rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <div className="text-sm font-semibold text-textPrimary">Rating kamu</div>
                           <div className="mt-1 text-xs text-textSecondary">
@@ -425,36 +565,41 @@ export default function RatingsSection() {
                           </div>
                         </div>
 
-                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-textSecondary">
+                        <span className="w-fit rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-textSecondary">
                           Dipilih: <span className="text-textPrimary">{myRating}</span>/5
                         </span>
                       </div>
 
                       <div className="mt-4 inline-flex items-center rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
-                        <StarRating value={myRating} onChange={(v) => setMyRating(v)} size={22} />
+                        <StarRating value={myRating} onChange={(v) => setMyRating(v)} size={20} />
                       </div>
                     </div>
 
-                    {/* Comment */}
                     <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft">
                       <label className="text-sm font-semibold text-textPrimary">Komentar</label>
                       <textarea
-                        className="mt-3 w-full resize-none rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-textPrimary shadow-soft
-                           outline-none focus:ring-2 focus:ring-primary/35"
+                        className="mt-3 w-full resize-none rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-textPrimary shadow-soft outline-none focus:ring-2 focus:ring-primary/35"
                         placeholder="Tulis alasan / ulasan kamu…"
                         value={myComment}
                         onChange={(e) => setMyComment(e.target.value)}
                         maxLength={280}
                         rows={4}
                       />
-                      <div className="mt-2 flex items-center justify-between text-xs text-textSecondary">
+                      <div className="mt-2 flex flex-col gap-1 text-xs text-textSecondary sm:flex-row sm:items-center sm:justify-between">
                         <span>Gunakan bahasa yang sopan ya.</span>
                         <span>{myComment.length}/280</span>
                       </div>
 
-                      <div className="mt-4 flex flex-wrap gap-3">
-                        <Button onClick={onSubmit}>Kirim</Button>
-                        <Button variant="outline" onClick={() => setMyComment('')} type="button">
+                      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                        <Button onClick={onSubmit} className="w-full sm:w-auto">
+                          Kirim
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setMyComment('')}
+                          type="button"
+                          className="w-full sm:w-auto"
+                        >
                           Hapus
                         </Button>
                       </div>
