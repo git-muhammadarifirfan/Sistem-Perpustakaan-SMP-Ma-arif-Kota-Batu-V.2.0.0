@@ -29,6 +29,14 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'highest', label: 'Rating Tertinggi' },
   { key: 'lowest', label: 'Rating Terendah' },
 ]
+const MIN_STARS_OPTS: { value: number; label: string }[] = [
+  { value: 0, label: 'Semua' },
+  { value: 5, label: '5+' },
+  { value: 4, label: '4+' },
+  { value: 3, label: '3+' },
+  { value: 2, label: '2+' },
+  { value: 1, label: '1+' },
+]
 
 function ChevronDown(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -156,7 +164,11 @@ export default function ReasonsPage() {
     let alive = true
     ;(async () => {
       setLoading(true)
-      const [d, s, ses] = await Promise.all([fetchDownloadCount(), fetchRatingSummary(), getSession()])
+      const [d, s, ses] = await Promise.all([
+        fetchDownloadCount(),
+        fetchRatingSummary(),
+        getSession(),
+      ])
       if (!alive) return
 
       setDownloadCount(d)
@@ -166,9 +178,7 @@ export default function ReasonsPage() {
         setSessionUser({
           id: ses.user.id,
           name:
-            (ses.user.user_metadata?.full_name as string) ??
-            (ses.user.email as string) ??
-            'User',
+            (ses.user.user_metadata?.full_name as string) ?? (ses.user.email as string) ?? 'User',
           avatar: (ses.user.user_metadata?.avatar_url as string) ?? null,
         })
       } else setSessionUser(null)
@@ -184,9 +194,7 @@ export default function ReasonsPage() {
           setSessionUser({
             id: ses.user.id,
             name:
-              (ses.user.user_metadata?.full_name as string) ??
-              (ses.user.email as string) ??
-              'User',
+              (ses.user.user_metadata?.full_name as string) ?? (ses.user.email as string) ?? 'User',
             avatar: (ses.user.user_metadata?.avatar_url as string) ?? null,
           })
       })
@@ -336,7 +344,10 @@ export default function ReasonsPage() {
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
               <div className="text-sm font-semibold text-textSecondary">Total Download</div>
               <div className="mt-3 text-3xl font-extrabold text-textPrimary">
-                <CountUp value={downloadCount} formatter={(v) => formatCompactNumber(Math.round(v))} />
+                <CountUp
+                  value={downloadCount}
+                  formatter={(v) => formatCompactNumber(Math.round(v))}
+                />
               </div>
             </div>
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
@@ -378,7 +389,9 @@ export default function ReasonsPage() {
                       <div className="mt-2">
                         <StarRating value={summary.avg_rating} />
                       </div>
-                      <div className="mt-2 text-sm text-textSecondary">{summary.total_reviews} ulasan</div>
+                      <div className="mt-2 text-sm text-textSecondary">
+                        {summary.total_reviews} ulasan
+                      </div>
                     </div>
 
                     <div className="hidden h-20 w-20 rounded-3xl bg-primary/10 sm:grid sm:place-items-center">
@@ -401,14 +414,18 @@ export default function ReasonsPage() {
                             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                           />
                         </div>
-                        <div className="w-10 text-right text-sm font-semibold text-textSecondary">{d.count}</div>
+                        <div className="w-10 text-right text-sm font-semibold text-textSecondary">
+                          {d.count}
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
-                  <div className="text-sm font-semibold text-textSecondary">Login untuk memberikan rating</div>
+                  <div className="text-sm font-semibold text-textSecondary">
+                    Login untuk memberikan rating
+                  </div>
 
                   {!sessionUser ? (
                     <div className="mt-4">
@@ -429,7 +446,9 @@ export default function ReasonsPage() {
                     </div>
                   ) : (
                     <div className="mt-4">
-                      <div className="text-sm font-semibold text-textPrimary">Halo, {sessionUser.name}</div>
+                      <div className="text-sm font-semibold text-textPrimary">
+                        Halo, {sessionUser.name}
+                      </div>
                       <button
                         className="mt-2 text-xs font-semibold text-primary hover:underline"
                         onClick={() => signOut()}
@@ -451,7 +470,10 @@ export default function ReasonsPage() {
             {/* List */}
             <section className="lg:col-span-8">
               <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
-                <div ref={listTopRef} className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div
+                  ref={listTopRef}
+                  className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+                >
                   <div>
                     <div className="text-lg font-semibold text-textPrimary">Semua Ulasan</div>
                     <div className="mt-1 text-sm text-textSecondary">
@@ -486,7 +508,9 @@ export default function ReasonsPage() {
                                 "
                               >
                                 <span className="truncate">{label}</span>
-                                <ChevronDown className={`h-4 w-4 opacity-80 transition ${open ? 'rotate-180' : ''}`} />
+                                <ChevronDown
+                                  className={`h-4 w-4 opacity-80 transition ${open ? 'rotate-180' : ''}`}
+                                />
                               </button>
                             )
                           }}
@@ -516,23 +540,61 @@ export default function ReasonsPage() {
                     </div>
 
                     {/* MIN STARS (select native, boleh nanti kamu ubah jadi dropdown juga) */}
+                    {/* MIN STARS (Dropdown custom, konsisten tema) */}
                     <div className="sm:col-span-1">
                       <div className="text-xs font-semibold text-textSecondary">Min Bintang</div>
-                      <select
-                        value={minStars}
-                        onChange={(e) => {
-                          setPage(1)
-                          setMinStars(parseInt(e.target.value, 10))
-                        }}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-textPrimary shadow-soft outline-none focus:ring-2 focus:ring-primary/30"
-                      >
-                        <option value={0}>Semua</option>
-                        <option value={5}>5+</option>
-                        <option value={4}>4+</option>
-                        <option value={3}>3+</option>
-                        <option value={2}>2+</option>
-                        <option value={1}>1+</option>
-                      </select>
+
+                      <div className="mt-2">
+                        <Dropdown
+                          align="left"
+                          width="sm"
+                          className="w-full"
+                          button={({ open, toggle, buttonProps }) => {
+                            const label =
+                              MIN_STARS_OPTS.find((o) => o.value === minStars)?.label ?? 'Semua'
+
+                            return (
+                              <button
+                                {...buttonProps}
+                                onClick={toggle}
+                                className="
+              w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2
+              text-left text-sm font-semibold text-textPrimary shadow-soft outline-none
+              focus:ring-2 focus:ring-primary/30
+              flex items-center justify-between gap-2
+              hover:bg-white/7 transition
+            "
+                              >
+                                <span className="truncate">{label}</span>
+                                <ChevronDown
+                                  className={`h-4 w-4 opacity-80 transition ${open ? 'rotate-180' : ''}`}
+                                />
+                              </button>
+                            )
+                          }}
+                        >
+                          {({ close }) => (
+                            <>
+                              <DropdownLabel>Filter</DropdownLabel>
+                              <DropdownSeparator />
+
+                              {MIN_STARS_OPTS.map((o) => (
+                                <DropdownItem
+                                  key={o.value}
+                                  active={o.value === minStars}
+                                  onClick={() => {
+                                    setPage(1)
+                                    setMinStars(o.value)
+                                    close()
+                                  }}
+                                >
+                                  {o.label}
+                                </DropdownItem>
+                              ))}
+                            </>
+                          )}
+                        </Dropdown>
+                      </div>
                     </div>
 
                     {/* SEARCH */}
@@ -554,7 +616,10 @@ export default function ReasonsPage() {
                 <div className="mt-6 space-y-4">
                   {loading || listLoading ? (
                     Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft">
+                      <div
+                        key={i}
+                        className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft"
+                      >
                         <Skeleton className="h-4 w-48 rounded-xl" />
                         <Skeleton className="mt-3 h-4 w-28 rounded-xl" />
                         <Skeleton className="mt-5 h-14 w-full rounded-2xl" />
@@ -566,7 +631,10 @@ export default function ReasonsPage() {
                       const isEditing = editingId === r.id
 
                       return (
-                        <div key={r.id} className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft">
+                        <div
+                          key={r.id}
+                          className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-soft"
+                        >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-3">
                               {r.avatar_url ? (
@@ -583,8 +651,12 @@ export default function ReasonsPage() {
 
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <div className="truncate text-sm font-semibold text-textPrimary">{r.user_name}</div>
-                                  <span className="text-xs text-textSecondary">• {timeAgo(r.created_at)}</span>
+                                  <div className="truncate text-sm font-semibold text-textPrimary">
+                                    {r.user_name}
+                                  </div>
+                                  <span className="text-xs text-textSecondary">
+                                    • {timeAgo(r.created_at)}
+                                  </span>
                                 </div>
 
                                 <div className="mt-2 flex items-center gap-2">
@@ -623,9 +695,17 @@ export default function ReasonsPage() {
                           ) : (
                             <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
                               <div className="flex flex-wrap items-center gap-3">
-                                <div className="text-sm font-semibold text-textPrimary">Update Rating</div>
-                                <StarRating value={editRating} onChange={(v) => setEditRating(v)} size={22} />
-                                <span className="text-xs font-semibold text-textSecondary">Dipilih: {editRating}/5</span>
+                                <div className="text-sm font-semibold text-textPrimary">
+                                  Update Rating
+                                </div>
+                                <StarRating
+                                  value={editRating}
+                                  onChange={(v) => setEditRating(v)}
+                                  size={22}
+                                />
+                                <span className="text-xs font-semibold text-textSecondary">
+                                  Dipilih: {editRating}/5
+                                </span>
                               </div>
 
                               <textarea
@@ -639,7 +719,11 @@ export default function ReasonsPage() {
 
                               <div className="mt-3 flex flex-wrap gap-3">
                                 <Button onClick={() => saveEdit(r)}>Update</Button>
-                                <Button variant="outline" onClick={() => setEditingId(null)} type="button">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => setEditingId(null)}
+                                  type="button"
+                                >
                                   Batal
                                 </Button>
                               </div>
@@ -651,7 +735,9 @@ export default function ReasonsPage() {
                   ) : (
                     <div className="rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
                       <div className="text-sm font-semibold text-textPrimary">Tidak ada hasil</div>
-                      <div className="mt-2 text-sm text-textSecondary">Coba ubah filter atau kata kunci.</div>
+                      <div className="mt-2 text-sm text-textSecondary">
+                        Coba ubah filter atau kata kunci.
+                      </div>
                       <div className="mt-6 flex justify-center gap-3">
                         <Button
                           variant="outline"
