@@ -8,6 +8,7 @@ import { Skeleton } from '../components/Skeleton'
 import { StarRating } from '../components/StarRating'
 import { CountUp } from '../components/CountUp'
 import { formatCompactNumber, timeAgo } from '../lib/format'
+import { Dropdown, DropdownItem, DropdownLabel, DropdownSeparator } from '../components/Dropdown'
 import {
   fetchDownloadCount,
   fetchRatingSummary,
@@ -22,6 +23,26 @@ import {
 const PAGE_SIZE = 12
 
 type SortKey = 'newest' | 'oldest' | 'highest' | 'lowest'
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: 'newest', label: 'Terbaru' },
+  { key: 'oldest', label: 'Terlama' },
+  { key: 'highest', label: 'Rating Tertinggi' },
+  { key: 'lowest', label: 'Rating Terendah' },
+]
+
+function ChevronDown(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
+      <path
+        d="M6 9l6 6 6-6"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
 function percent(part: number, total: number) {
   if (!total) return 0
@@ -33,7 +54,6 @@ function clamp(n: number, min: number, max: number) {
 }
 
 function buildPageList(current: number, total: number) {
-  // compact pagination: 1 … (c-1) c (c+1) … total
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
 
   const pages: (number | '…')[] = []
@@ -95,7 +115,11 @@ export default function ReasonsPage() {
   const [items, setItems] = useState<RatingRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
 
-  const [sessionUser, setSessionUser] = useState<{ id: string; name: string; avatar: string | null } | null>(null)
+  const [sessionUser, setSessionUser] = useState<{
+    id: string
+    name: string
+    avatar: string | null
+  } | null>(null)
 
   // filter/sort/pagination
   const [sort, setSort] = useState<SortKey>('newest')
@@ -121,7 +145,10 @@ export default function ReasonsPage() {
     [summary],
   )
 
-  const satisfaction = useMemo(() => percent(summary.star_5 + summary.star_4, summary.total_reviews), [summary])
+  const satisfaction = useMemo(
+    () => percent(summary.star_5 + summary.star_4, summary.total_reviews),
+    [summary],
+  )
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(totalRows / PAGE_SIZE)), [totalRows])
 
@@ -138,12 +165,14 @@ export default function ReasonsPage() {
       if (ses?.user) {
         setSessionUser({
           id: ses.user.id,
-          name: (ses.user.user_metadata?.full_name as string) ?? (ses.user.email as string) ?? 'User',
+          name:
+            (ses.user.user_metadata?.full_name as string) ??
+            (ses.user.email as string) ??
+            'User',
           avatar: (ses.user.user_metadata?.avatar_url as string) ?? null,
         })
       } else setSessionUser(null)
 
-      // initial list fetch
       await fetchList({ resetPage: true })
       if (alive) setLoading(false)
     })()
@@ -154,7 +183,10 @@ export default function ReasonsPage() {
         else
           setSessionUser({
             id: ses.user.id,
-            name: (ses.user.user_metadata?.full_name as string) ?? (ses.user.email as string) ?? 'User',
+            name:
+              (ses.user.user_metadata?.full_name as string) ??
+              (ses.user.email as string) ??
+              'User',
             avatar: (ses.user.user_metadata?.avatar_url as string) ?? null,
           })
       })
@@ -170,7 +202,6 @@ export default function ReasonsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // refetch ketika filter/sort/page berubah (debounce untuk search)
   useEffect(() => {
     const t = setTimeout(() => {
       fetchList()
@@ -189,25 +220,22 @@ export default function ReasonsPage() {
     const from = (currentPage - 1) * PAGE_SIZE
     const to = from + PAGE_SIZE - 1
 
-    // base query + count
     let query = supabase.from('ratings').select('*', { count: 'exact' })
 
-    // filter minStars
     if (minStars > 0) query = query.gte('rating', minStars)
 
-    // search (simple): comment OR user_name
-    // NOTE: supabase .or syntax string
     const keyword = q.trim()
     if (keyword) {
-      const safe = keyword.replaceAll(',', ' ') // minimal safety untuk .or syntax
+      const safe = keyword.replaceAll(',', ' ')
       query = query.or(`comment.ilike.%${safe}%,user_name.ilike.%${safe}%`)
     }
 
-    // sorting
     if (sort === 'newest') query = query.order('created_at', { ascending: false })
     if (sort === 'oldest') query = query.order('created_at', { ascending: true })
-    if (sort === 'highest') query = query.order('rating', { ascending: false }).order('created_at', { ascending: false })
-    if (sort === 'lowest') query = query.order('rating', { ascending: true }).order('created_at', { ascending: false })
+    if (sort === 'highest')
+      query = query.order('rating', { ascending: false }).order('created_at', { ascending: false })
+    if (sort === 'lowest')
+      query = query.order('rating', { ascending: true }).order('created_at', { ascending: false })
 
     const { data, error, count } = await query.range(from, to)
 
@@ -215,7 +243,6 @@ export default function ReasonsPage() {
       setItems(((data as RatingRow[]) ?? []) as RatingRow[])
       setTotalRows(count ?? 0)
 
-      // scroll ke atas list biar enak (tanpa ngeganggu mobile)
       requestAnimationFrame(() => {
         listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       })
@@ -243,8 +270,6 @@ export default function ReasonsPage() {
       const s = await fetchRatingSummary()
       setSummary(s as any)
       setEditingId(null)
-
-      // keep current filters/page, just refetch
       await fetchList()
     } catch {
       // ignore
@@ -266,11 +291,17 @@ export default function ReasonsPage() {
 
             <div className="flex items-center gap-3">
               {sessionUser ? (
-                <button className="text-sm font-semibold text-primary hover:underline" onClick={() => signOut()}>
+                <button
+                  className="text-sm font-semibold text-primary hover:underline"
+                  onClick={() => signOut()}
+                >
                   Logout
                 </button>
               ) : null}
-              <Link to="/" className="hidden text-sm font-semibold text-textSecondary hover:text-textPrimary sm:inline">
+              <Link
+                to="/"
+                className="hidden text-sm font-semibold text-textSecondary hover:text-textPrimary sm:inline"
+              >
                 Home
               </Link>
             </div>
@@ -294,8 +325,12 @@ export default function ReasonsPage() {
             <span className="text-textPrimary">Ulasan Pengguna</span>
           </div>
 
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-textPrimary sm:text-5xl">Ulasan Pengguna</h1>
-          <p className="mt-3 max-w-2xl text-base text-textSecondary">Apa kata pengguna tentang aplikasi ini?</p>
+          <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-textPrimary sm:text-5xl">
+            Ulasan Pengguna
+          </h1>
+          <p className="mt-3 max-w-2xl text-base text-textSecondary">
+            Apa kata pengguna tentang aplikasi ini?
+          </p>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-soft">
@@ -395,7 +430,10 @@ export default function ReasonsPage() {
                   ) : (
                     <div className="mt-4">
                       <div className="text-sm font-semibold text-textPrimary">Halo, {sessionUser.name}</div>
-                      <button className="mt-2 text-xs font-semibold text-primary hover:underline" onClick={() => signOut()}>
+                      <button
+                        className="mt-2 text-xs font-semibold text-primary hover:underline"
+                        onClick={() => signOut()}
+                      >
                         Logout
                       </button>
                     </div>
@@ -424,23 +462,60 @@ export default function ReasonsPage() {
 
                   {/* Controls */}
                   <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-3">
+                    {/* SORT (Dropdown custom) */}
                     <div className="sm:col-span-1">
                       <div className="text-xs font-semibold text-textSecondary">Urutkan</div>
-                      <select
-                        value={sort}
-                        onChange={(e) => {
-                          setPage(1)
-                          setSort(e.target.value as SortKey)
-                        }}
-                        className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-textPrimary shadow-soft outline-none focus:ring-2 focus:ring-primary/30"
-                      >
-                        <option value="newest">Terbaru</option>
-                        <option value="oldest">Terlama</option>
-                        <option value="highest">Rating Tertinggi</option>
-                        <option value="lowest">Rating Terendah</option>
-                      </select>
+
+                      <div className="mt-2">
+                        <Dropdown
+                          align="left"
+                          width="md"
+                          className="w-full" // ✅ penting biar tombol lebar penuh
+                          button={({ open, toggle, buttonProps }) => {
+                            const label = SORTS.find((s) => s.key === sort)?.label ?? 'Urutkan'
+                            return (
+                              <button
+                                {...buttonProps}
+                                onClick={toggle}
+                                className="
+                                  w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2
+                                  text-left text-sm font-semibold text-textPrimary shadow-soft outline-none
+                                  focus:ring-2 focus:ring-primary/30
+                                  flex items-center justify-between gap-2
+                                  hover:bg-white/7 transition
+                                "
+                              >
+                                <span className="truncate">{label}</span>
+                                <ChevronDown className={`h-4 w-4 opacity-80 transition ${open ? 'rotate-180' : ''}`} />
+                              </button>
+                            )
+                          }}
+                        >
+                          {({ close }) => (
+                            <>
+                              <DropdownLabel>Urutkan</DropdownLabel>
+                              <DropdownSeparator />
+
+                              {SORTS.map((s) => (
+                                <DropdownItem
+                                  key={s.key}
+                                  active={s.key === sort}
+                                  onClick={() => {
+                                    setPage(1)
+                                    setSort(s.key)
+                                    close()
+                                  }}
+                                >
+                                  {s.label}
+                                </DropdownItem>
+                              ))}
+                            </>
+                          )}
+                        </Dropdown>
+                      </div>
                     </div>
 
+                    {/* MIN STARS (select native, boleh nanti kamu ubah jadi dropdown juga) */}
                     <div className="sm:col-span-1">
                       <div className="text-xs font-semibold text-textSecondary">Min Bintang</div>
                       <select
@@ -460,6 +535,7 @@ export default function ReasonsPage() {
                       </select>
                     </div>
 
+                    {/* SEARCH */}
                     <div className="sm:col-span-1">
                       <div className="text-xs font-semibold text-textSecondary">Cari</div>
                       <input
@@ -494,7 +570,11 @@ export default function ReasonsPage() {
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-3">
                               {r.avatar_url ? (
-                                <img className="h-11 w-11 rounded-2xl border border-white/10 object-cover" src={r.avatar_url} alt="avatar" />
+                                <img
+                                  className="h-11 w-11 rounded-2xl border border-white/10 object-cover"
+                                  src={r.avatar_url}
+                                  alt="avatar"
+                                />
                               ) : (
                                 <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 font-semibold text-primary ring-1 ring-white/10">
                                   {(r.user_name ?? 'U')[0]?.toUpperCase()}
