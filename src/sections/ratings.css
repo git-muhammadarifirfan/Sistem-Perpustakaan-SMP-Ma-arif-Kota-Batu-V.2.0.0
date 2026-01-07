@@ -1,0 +1,187 @@
+.rating-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+.rating-link{
+  color: var(--primary-2);
+  font-weight: 600;
+}
+.rating-link:hover{ text-decoration: underline; }
+
+.summary{
+  margin-top: 26px;
+  background: linear-gradient(180deg, rgba(11,122,51,1), rgba(3,76,35,1));
+  color: white;
+  border-radius: 18px;
+  padding: 22px 22px;
+  display:grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  box-shadow: 0 18px 50px rgba(2,6,23,.16);
+}
+.summary-score{ font-size: 52px; font-weight: 600; line-height: 1; }
+.summary-count{ opacity:.9; font-weight: 600; margin-top: 6px; }
+.summary-left .stars .star{ color: rgba(255,255,255,.35); }
+.summary-left .stars .star.active{ color: rgba(245,158,11,1); }
+
+.summary-bars{ display:flex; flex-direction:column; gap: 10px; }
+.bar-row{
+  display:grid;
+  grid-template-columns: 18px 1fr 30px;
+  gap: 10px;
+  align-items:center;
+  font-weight: 600;
+}
+.bar-track{
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.18);
+  overflow:hidden;
+}
+.bar-fill{
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255,255,255,.82);
+}
+.bar-star,.bar-num{ font-size: 12px; opacity:.9; }
+
+.review-wrap{
+  margin-top: 18px;
+  position:relative;
+}
+.review-scroller{
+  display:flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding: 18px 0;
+  scroll-snap-type: x mandatory;
+}
+.review-card{
+  flex: 0 0 270px;
+  background: rgba(255,255,255,.82);
+  border: 1px solid rgba(15,23,42,.06);
+  border-radius: 18px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 14px 34px rgba(2,6,23,.08);
+  scroll-snap-align: start;
+}
+.review-top{ display:flex; gap: 10px; align-items:center; }
+.avatar{
+  width: 38px; height: 38px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid rgba(15,23,42,.08);
+}
+.avatar.fallback{
+  display:grid; place-items:center;
+  font-weight: 600;
+  background: rgba(3,76,35,.10);
+  color: var(--primary);
+}
+.who .name{ font-weight: 600; }
+.meta{ display:flex; align-items:center; gap: 8px; margin-top: 2px; }
+.badge{
+  background: rgba(245,158,11,.18);
+  color: rgba(234,88,12,1);
+  font-weight: 600;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.review-text{
+  margin-top: 10px;
+  color: rgba(15,23,42,.70);
+  line-height: 1.55;
+  min-height: 62px;
+}
+.review-time{ margin-top: 10px; color: rgba(15,23,42,.45); font-weight: 600; font-size: 12px; }
+
+.chev{
+  position:absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,.10);
+  background: rgba(255,255,255,.9);
+  cursor:pointer;
+  box-shadow: 0 12px 26px rgba(2,6,23,.12);
+}
+.chev.left{ left: -10px; }
+.chev.right{ right: -10px; }
+
+.empty{
+  padding: 18px;
+  color: rgba(15,23,42,.62);
+  font-weight: 600;
+}
+
+.sk-line{ height: 16px; border-radius: 10px; }
+.sk-line.short{ width: 70%; margin-top: 8px; }
+.sk-block{ height: 70px; border-radius: 14px; margin-top: 12px; }
+
+.give{
+  margin-top: 34px;
+  border: 2px dashed rgba(15,23,42,.12);
+  border-radius: 18px;
+  padding: 26px 22px;
+  text-align:center;
+  background: rgba(255,255,255,.65);
+}
+.give-ic{
+  width: 56px; height: 56px;
+  border-radius: 999px;
+  background: rgba(99,176,142,.18);
+  display:grid; place-items:center;
+  margin: 0 auto 10px;
+  color: var(--primary);
+  font-size: 20px;
+  font-weight: 600;
+}
+.give-title{ font-weight: 600; }
+.give-sub{ margin-top: 6px; color: rgba(15,23,42,.62); }
+
+.give-form{
+  margin-top: 16px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align:left;
+}
+.give-user{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  justify-content: space-between;
+}
+.give-user .who{ display:flex; align-items:center; gap: 12px; }
+.link{
+  border:0;
+  background:transparent;
+  color: rgba(15,23,42,.65);
+  font-weight: 600;
+  cursor:pointer;
+}
+.link:hover{ text-decoration: underline; }
+
+.give-stars{ margin-top: 10px; }
+.give-textarea{
+  margin-top: 10px;
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,23,42,.10);
+  outline: none;
+  background: rgba(255,255,255,.85);
+}
+.give-actions{ margin-top: 12px; display:flex; justify-content:flex-end; }
+
+@media (max-width: 980px){
+  .summary{ grid-template-columns: 1fr; }
+  .chev{ display:none; }
+}

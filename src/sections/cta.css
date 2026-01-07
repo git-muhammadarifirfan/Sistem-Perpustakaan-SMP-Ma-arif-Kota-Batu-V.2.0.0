@@ -1,0 +1,18 @@
+.cta{
+  text-align:center;
+  background: linear-gradient(180deg, rgba(247,251,248, 1), rgba(229,239,229,.55));
+}
+.cta-title{
+  margin: 0;
+  font-size: 44px;
+  letter-spacing: -0.5px;
+}
+.cta-sub{
+  margin-top: 10px;
+  color: rgba(15,23,42,.62);
+}
+.cta-actions{ margin-top: 18px; display:flex; justify-content:center; }
+.cta-note{ margin-top: 10px; color: rgba(15,23,42,.45); font-weight: 600; font-size: 12px; }
+@media (max-width:560px){
+  .cta-title{ font-size: 38px; }
+}

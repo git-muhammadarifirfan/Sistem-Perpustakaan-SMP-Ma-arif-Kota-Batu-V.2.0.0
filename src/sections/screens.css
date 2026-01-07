@@ -1,0 +1,82 @@
+.preview{
+  background: linear-gradient(180deg, rgba(229,239,229,.65), rgba(255,255,255, 1));
+  border-top: 1px solid rgba(15,23,42,.06);
+  border-bottom: 1px solid rgba(15,23,42,.06);
+}
+.preview-bg{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(520px 280px at 20% 30%, rgba(99,176,142,.20), transparent 62%),
+    radial-gradient(520px 280px at 85% 40%, rgba(3,76,35,.08), transparent 62%);
+  pointer-events:none;
+}
+.shots-wrap{
+  margin-top: 40px;
+  position:relative;
+  height: 360px;
+}
+.shot{
+  position:absolute;
+  width: 220px;
+  height: 360px;
+  border-radius: 22px;
+  overflow:hidden;
+  box-shadow: 0 18px 40px rgba(2,6,23,.14);
+  border: 1px solid rgba(15,23,42,.08);
+  background: rgba(255,255,255,.9);
+  transform-origin: bottom center;
+  transition: transform .18s ease;
+  cursor: zoom-in;
+}
+.shot:hover{ transform: translateY(-8px) scale(1.02) rotate(var(--rot)); }
+
+.shot-img-wrap{ width: 100%; height: 100%; border-radius: 0; }
+.shot-img{ width: 100%; height: 100%; object-fit: cover; }
+
+.shot-1{ left: 0%; top: 14px; --rot: -7deg; transform: rotate(-7deg); }
+.shot-2{ left: 16%; top: 0px; --rot: -3deg; transform: rotate(-3deg); }
+.shot-3{ left: 32%; top: -10px; --rot: 0deg; transform: rotate(0deg); z-index: 2; }
+.shot-4{ left: 50%; top: 0px; --rot: 3deg; transform: rotate(3deg); }
+.shot-5{ left: 66%; top: 14px; --rot: 7deg; transform: rotate(7deg); }
+.shot-6{ left: 82%; top: 26px; --rot: 10deg; transform: rotate(10deg); opacity: .95; }
+
+.shots-hint{
+  margin-top: 14px;
+  text-align:center;
+  color: rgba(15,23,42,.55);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.lightbox-img{
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,.10);
+}
+
+@media (max-width: 980px){
+  .shots-wrap{ height: 520px; }
+  .shot{
+    width: 190px;
+    height: 310px;
+  }
+  .shot-1{ left: 0%; top: 130px; }
+  .shot-2{ left: 10%; top: 80px; }
+  .shot-3{ left: 26%; top: 40px; }
+  .shot-4{ left: 46%; top: 60px; }
+  .shot-5{ left: 64%; top: 100px; }
+  .shot-6{ display:none; }
+}
+
+@media (max-width: 560px){
+  .shots-wrap{
+    height: auto;
+    display:flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 2px 6px;
+    scroll-snap-type: x mandatory;
+  }
+  .shot{ position:relative; left:auto; top:auto; transform:none !important; width: 220px; flex: 0 0 auto; scroll-snap-align:center; }
+}
