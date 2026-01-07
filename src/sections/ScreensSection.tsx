@@ -233,9 +233,7 @@ export default function ScreensSection() {
             </div>
           </div>
 
-          <p className="mt-2 text-center text-xs text-textSecondary">
-            Hover untuk pause • Scroll/drag untuk manual • Klik untuk zoom
-          </p>
+
         </div>
       </Container>
 
