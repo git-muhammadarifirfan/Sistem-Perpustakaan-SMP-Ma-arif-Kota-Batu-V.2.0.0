@@ -311,7 +311,7 @@ export default function RatingsSection() {
                         Berikan Rating
                       </h3>
                       <p className="mt-1 text-sm text-textSecondary">
-                        Bantu kami jadi lebih baik — beri rating dan ulasan singkat.
+                        Bantu kami jadi lebih baik, beri rating dan ulasan singkat.
                       </p>
                     </div>
                   </div>
